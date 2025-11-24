@@ -181,7 +181,7 @@ const checkConflict = (newDate, newTime, allTareas) => {
 // 3. COMPONENTES GLOBALES (HEADER, SIDEBAR, PORTAL, MODAL)
 // =============================================================================
 
-const Header = ({ currentRole, onLogout, adminId, allEmpresas, auxiliaryUsers }) => {
+const Header = ({ currentRole, onLogout, adminId, allEmpresas, auxiliaryUsers, onToggleSidebar }) => {
     // ... [Lógica de Header y notificaciones sin cambios]
     const notifs = []; // TODO: Reemplazar con datos reales de Supabase
     const tareas = []; // TODO: Reemplazar con datos reales de Supabase
@@ -212,9 +212,14 @@ const Header = ({ currentRole, onLogout, adminId, allEmpresas, auxiliaryUsers })
 
     return (
         <header className="flex items-center justify-between p-4 bg-slate-800 border-b border-slate-700 shadow-md">
-            <h1 className="text-xl font-semibold text-teal-400">Contador Pro</h1>
+            <div className="flex items-center">
+                <button onClick={onToggleSidebar} className="text-teal-400 p-2 rounded-lg hover:bg-slate-700 md:hidden mr-2">
+                    <ion-icon name="menu-outline" className="text-2xl"></ion-icon>
+                </button>
+                <h1 className="text-xl font-semibold text-teal-400">Contador Pro</h1>
+            </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
                 <span className="text-sm text-gray-400 hidden sm:block">
                     Usuario: <span className="font-medium text-gray-200">{currentUserName}</span>
                 </span>
@@ -249,16 +254,16 @@ const Header = ({ currentRole, onLogout, adminId, allEmpresas, auxiliaryUsers })
                     </div>
                 )}
 
-                <button onClick={onLogout} className="flex items-center bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200">
+                <button onClick={onLogout} className="flex items-center bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-3 sm:px-4 rounded-lg shadow transition duration-200 text-sm sm:text-base">
                     <ion-icon name="log-out-outline" className="mr-2"></ion-icon>
-                    Salir
+                    <span className="hidden sm:inline">Salir</span>
                 </button>
             </div>
         </header>
     );
 };
 
-const Sidebar = ({ currentPage, onNavigate, currentRole }) => {
+const Sidebar = ({ currentPage, onNavigate, currentRole, isOpen, onClose }) => {
     
     const getLinkClass = (pageName) => {
         const baseClass = "flex items-center px-4 py-3 text-gray-300 hover:bg-slate-700 hover:text-teal-400 rounded-lg transition duration-200";
@@ -276,26 +281,36 @@ const Sidebar = ({ currentPage, onNavigate, currentRole }) => {
         { page: 'users', icon: 'people-outline', label: 'Usuarios' }, // NUEVO MÓDULO
     ];
     
-    const navItems = currentRole === 'admin' ? adminNav : adminNav.filter(item => item.page === 'dashboard' || item.page === 'clientes'); // Filtrar para Auxiliares si es necesario
+    const navItems = currentRole === 'admin' ? adminNav : adminNav.filter(item => item.page === 'dashboard' || item.page === 'clientes');
+
+    const sidebarClasses = `
+        w-64 h-full bg-slate-800 p-4 shadow-lg flex-shrink-0 flex-col
+        transition-transform duration-300 ease-in-out
+        md:flex md:relative md:translate-x-0
+        ${isOpen ? 'fixed top-0 left-0 z-50 translate-x-0' : 'absolute -translate-x-full'}
+    `;
 
     return (
-        <nav id="sidebar" className="w-64 h-full bg-slate-800 p-4 shadow-lg flex-shrink-0 hidden md:flex md:flex-col">
-            <div className="flex items-center mb-6">
-                <ion-icon name="calculator" className="text-3xl text-teal-400 mr-3"></ion-icon>
-                <span className="text-2xl font-bold text-white">Contador Pro</span>
-            </div>
-            
-            <ul className="space-y-3">
-                {navItems.map(item => (
-                    <li key={item.page}>
-                        <button onClick={() => onNavigate(item.page)} className={getLinkClass(item.page) + ' w-full text-left'}>
-                            <ion-icon name={item.icon} className="mr-3 text-xl"></ion-icon>
-                            {item.label}
-                        </button>
-                    </li>
-                ))}
-            </ul>
-        </nav>
+        <>
+            {isOpen && <div className="fixed inset-0 bg-black/60 z-40 md:hidden" onClick={onClose}></div>}
+            <nav id="sidebar" className={sidebarClasses}>
+                <div className="flex items-center mb-6">
+                    <ion-icon name="calculator" className="text-3xl text-teal-400 mr-3"></ion-icon>
+                    <span className="text-2xl font-bold text-white">Contador Pro</span>
+                </div>
+                
+                <ul className="space-y-3">
+                    {navItems.map(item => (
+                        <li key={item.page}>
+                            <button onClick={() => { onNavigate(item.page); onClose(); }} className={getLinkClass(item.page) + ' w-full text-left'}>
+                                <ion-icon name={item.icon} className="mr-3 text-xl"></ion-icon>
+                                {item.label}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+        </>
     );
 };
 
@@ -1267,33 +1282,35 @@ const DashboardPage = ({ allEmpresas, allTareas, onOpenTaskModal }) => {
 
     return (
         <div className="animate-fade-in">
-            <h2 className="text-3xl font-bold text-white mb-6">Dashboard Principal</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Dashboard Principal</h2>
             
             {/* Panel de Citas y Reuniones */}
-            <div className="bg-slate-800 p-6 rounded-lg shadow-xl mb-8">
-                <h3 className="text-xl font-semibold text-yellow-400 mb-4 flex items-center">
+            <div className="bg-slate-800 p-4 md:p-6 rounded-lg shadow-xl mb-8">
+                <h3 className="text-lg md:text-xl font-semibold text-yellow-400 mb-4 flex items-center">
                     <ion-icon name="calendar-number-outline" className="mr-2"></ion-icon> Próximas Citas y Reuniones
                 </h3>
                 
-                <div className="flex border-b border-slate-700 mb-4 overflow-x-auto">
-                    {[
-                        { id: 'hoy', label: `Hoy (${reunionesAgrupadas.hoy.length})`, color: 'text-red-400' },
-                        { id: 'manana', label: `Mañana (${reunionesAgrupadas.manana.length})`, color: 'text-yellow-400' },
-                        { id: 'semana', label: `Esta Semana (${reunionesAgrupadas.estaSemana.length})`, color: 'text-teal-400' },
-                        { id: 'mes', label: `Este Mes (${reunionesAgrupadas.esteMes.length})`, color: 'text-blue-400' },
-                    ].map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`px-4 py-2 font-medium border-b-2 transition duration-200 ${
-                                activeTab === tab.id
-                                    ? `border-teal-400 ${tab.color}`
-                                    : 'border-transparent text-gray-400 hover:text-white'
-                            }`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
+                <div className="border-b border-slate-700 mb-4 overflow-x-auto">
+                    <div className="flex -mb-px">
+                        {[
+                            { id: 'hoy', label: `Hoy (${reunionesAgrupadas.hoy.length})`, color: 'text-red-400' },
+                            { id: 'manana', label: `Mañana (${reunionesAgrupadas.manana.length})`, color: 'text-yellow-400' },
+                            { id: 'semana', label: `Esta Semana (${reunionesAgrupadas.estaSemana.length})`, color: 'text-teal-400' },
+                            { id: 'mes', label: `Este Mes (${reunionesAgrupadas.esteMes.length})`, color: 'text-blue-400' },
+                        ].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex-shrink-0 px-3 py-2 font-medium text-sm md:text-base md:px-4 border-b-2 transition duration-200 ${
+                                    activeTab === tab.id
+                                        ? `border-teal-400 ${tab.color}`
+                                        : 'border-transparent text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 <div className="space-y-3 min-h-[100px]">
@@ -1303,8 +1320,8 @@ const DashboardPage = ({ allEmpresas, allTareas, onOpenTaskModal }) => {
 
 
             {/* Sección de Tareas Urgentes (Fiscal/General) */}
-            <div className="bg-slate-800 p-6 rounded-lg shadow-xl">
-                <h3 className="text-xl font-semibold text-teal-400 mb-4">Próximos Vencimientos (Fiscal/General)</h3>
+            <div className="bg-slate-800 p-4 md:p-6 rounded-lg shadow-xl">
+                <h3 className="text-lg md:text-xl font-semibold text-teal-400 mb-4">Próximos Vencimientos (Fiscal/General)</h3>
                 <div className="space-y-4">
                     {tareasUrgentes.length === 0 ? (
                         <p className="text-gray-400">¡Todo al día! No hay vencimientos urgentes.</p>
@@ -1314,13 +1331,13 @@ const DashboardPage = ({ allEmpresas, allTareas, onOpenTaskModal }) => {
                                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-slate-700 rounded-lg shadow-md"
                                  style={{ borderLeft: `4px solid ${tarea.empresa?.color_hex || '#64748b'}` }}>
                                 <div>
-                                    <h4 className="font-bold text-lg text-white">{tarea.titulo}</h4>
+                                    <h4 className="font-bold text-base md:text-lg text-white">{tarea.titulo}</h4>
                                     <p className="text-sm text-gray-400">
                                         Cliente: <span className="text-teal-300">{tarea.empresa?.nombre_legal}</span>
                                     </p>
                                 </div>
                                 <div className="mt-2 sm:mt-0 text-right">
-                                    <span className="text-lg font-bold text-red-400">
+                                    <span className="text-base md:text-lg font-bold text-red-400">
                                         {new Date(tarea.fecha_vencimiento.replace(/-/g, '/')).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })}
                                     </span>
                                     <div className="flex items-center justify-end space-x-2 mt-1">
@@ -1404,7 +1421,6 @@ const ClientesPage = ({ allEmpresas, onSelectEmpresa, onOpenClientModal }) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {/* FIX: Renderizar el array directamente. React ya maneja el array vacío o el array de TRs. */}
                             {tableRows}
                         </tbody>
                     </table>
@@ -1614,7 +1630,7 @@ const CalendarioPage = ({ allEmpresas, allTareas, onOpenTaskModal, onOpenDailyAg
                 <button onClick={() => setCurrentDate(prev => new Date(prev.setMonth(prev.getMonth() - 1)))} className="text-teal-400 p-2 rounded-lg hover:bg-slate-700">
                     <ion-icon name="chevron-back-outline" className="text-2xl"></ion-icon>
                 </button>
-                <h3 className="text-2xl font-semibold text-white">
+                <h3 className="text-xl sm:text-2xl font-semibold text-white text-center">
                     {currentDate.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}
                 </h3>
                 <button onClick={() => setCurrentDate(prev => new Date(prev.setMonth(prev.getMonth() + 1)))} className="text-teal-400 p-2 rounded-lg hover:bg-slate-700">
@@ -1622,28 +1638,29 @@ const CalendarioPage = ({ allEmpresas, allTareas, onOpenTaskModal, onOpenDailyAg
                 </button>
             </div>
 
-            <div className="bg-slate-800 p-4 rounded-lg shadow-xl">
-                <div className="grid grid-cols-7 gap-1">
+            <div className="bg-slate-800 p-2 sm:p-4 rounded-lg shadow-xl overflow-x-auto">
+                <div className="grid grid-cols-7 min-w-[30rem] sm:min-w-full">
                     {weekDays.map(day => (
-                        <div key={day} className="text-center font-bold text-xs text-gray-400 py-2 uppercase">{day}</div>
+                        <div key={day} className="text-center font-bold text-xs text-gray-400 py-2 uppercase">
+                            <span className="hidden sm:inline">{day}</span>
+                            <span className="sm:hidden">{day.slice(0,1)}</span>
+                        </div>
                     ))}
                 </div>
                 
-                <div className="grid grid-cols-7 gap-1">
+                <div className="grid grid-cols-7 gap-1 min-w-[30rem] sm:min-w-full">
                     {calendarData.map(dayInfo => (
-                        <div key={dayInfo.key} className={`h-32 rounded-md p-2 overflow-hidden ${dayInfo.type === 'empty' ? 'bg-slate-800' : 'bg-slate-700 border border-slate-600'} ${dayInfo.isCurrentDay ? 'bg-sky-800' : ''}`}>
+                        <div key={dayInfo.key} className={`h-32 rounded-md p-2 overflow-hidden ${dayInfo.type === 'empty' ? 'bg-slate-800' : 'bg-slate-700 border border-slate-600'} ${dayInfo.isCurrentDay ? 'bg-yellow-400 border-2 border-yellow-500' : ''}`}>
                             {dayInfo.type === 'day' && (
                                 <div 
-                                    // MODIFICADO: El contenedor del día abre la Agenda Diaria
                                     onClick={() => onOpenDailyAgenda(dayInfo.dateObj, dayInfo.tareas)} 
                                     className="w-full h-full text-left cursor-pointer"
                                 >
-                                    <span className="font-bold text-sm text-white block">{dayInfo.day}</span>
+                                    <span className={`font-bold text-sm ${dayInfo.isCurrentDay ? 'text-slate-900' : 'text-white'} block`}>{dayInfo.day}</span>
                                     <div className="mt-1 space-y-1 overflow-y-auto max-h-24">
                                         {dayInfo.tareas.map(tarea => (
                                             <button 
                                                 key={tarea.id}
-                                                // MODIFICADO: El botón de tarea abre el Detalle y detiene la propagación
                                                 onClick={(e) => { e.stopPropagation(); onOpenTaskModal(tarea.id, true); }} 
                                                 className="p-1 bg-slate-900 rounded text-xs truncate w-full text-left transition flex items-center hover:bg-slate-600"
                                                 title={`${tarea.titulo} (${allEmpresas.find(e => e.id === tarea.empresa_id)?.nombre_legal})`}
@@ -2239,6 +2256,7 @@ const UserManagementPage = ({ auxiliaryUsers, updateAuxiliaryUsers, allEmpresas 
 function App() {
     const [session, setSession] = useState(null);
     const [page, setPage] = useState('dashboard');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [selectedLeadId, setSelectedLeadId] = useState(null);
     const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
     const [taskToEdit, setTaskToEdit] = useState(null);
@@ -2701,10 +2719,23 @@ function App() {
     return (
         <div id="app-container" className="flex h-screen bg-slate-900 text-gray-200 font-sans">
             
-            <Sidebar currentPage={page} onNavigate={navigateTo} currentRole="admin" />
+            <Sidebar 
+                currentPage={page} 
+                onNavigate={navigateTo} 
+                currentRole="admin" 
+                isOpen={isSidebarOpen}
+                onClose={() => setIsSidebarOpen(false)}
+            />
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Header currentRole="admin" onLogout={handleLogout} adminId={session.user.id} allEmpresas={allEmpresas} auxiliaryUsers={auxiliaryUsers} />
+                <Header 
+                    currentRole="admin" 
+                    onLogout={handleLogout} 
+                    adminId={session.user.id} 
+                    allEmpresas={allEmpresas} 
+                    auxiliaryUsers={auxiliaryUsers}
+                    onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+                />
                 
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-900 p-6 md:p-8">
                     {renderPage()}
