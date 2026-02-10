@@ -58,6 +58,12 @@ web_modules/
 .env.*
 !.env.example
 
+# EXCEPCIONES: Trackear archivos TypeScript principales de la app
+!src/*.tsx
+!src/App.tsx
+!src/AdminPanel.tsx
+!src/HistoryReport.tsx
+
 # Caches de Bundlers/Frameworks
 .cache
 .parcel-cache
