@@ -5,4 +5,9 @@
 body {
     @apply bg-slate-900 text-white;
   }
+
+/* Ensure form text is visible on light backgrounds */
+input, textarea, select {
+  @apply text-gray-900;
+}
   
