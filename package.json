@@ -4,16 +4,20 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "set \"CHOKIDAR_USEPOLLING=true\" && vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.76.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.1.0",
+    "xlsx": "^0.18.5",
     "lucide-react": "^0.379.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "twilio": "^5.12.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
